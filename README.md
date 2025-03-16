@@ -51,27 +51,27 @@ rs.status()
 Получаем ответ
 ```json
 {
-	members: [
+	"members": [
 		{
-		  _id: 0,
-		  name: 'shard1_rs1:27018',
-		  health: 1,
-		  state: 1,
-		  stateStr: 'PRIMARY'
+		  "_id": 0,
+		  "name": "shard1_rs1:27018",
+		  "health": 1,
+		  "state": 1,
+		  "stateStr": "PRIMARY"
 		},
 		{
-		  _id: 1,
-		  name: 'shard1_rs2:27019',
-		  health: 1,
-		  state: 2,
-		  stateStr: 'SECONDARY'
+		  "_id": 1,
+		  "name": "shard1_rs2:27019",
+		  "health": 1,
+		  "state": 2,
+		  "stateStr": "SECONDARY"
 		},
 		{
-		  _id: 2,
-		  name: 'shard1_rs3:27020',
-		  health: 1,
-		  state: 2,
-		  stateStr: 'SECONDARY'
+		  "_id": 2,
+		  "name": "shard1_rs3:27020",
+		  "health": 1,
+		  "state": 2,
+		  "stateStr": "SECONDARY"
 		}
 	]
 }
