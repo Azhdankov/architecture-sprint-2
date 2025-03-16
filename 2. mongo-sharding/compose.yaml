@@ -1,0 +1,91 @@
+services:
+
+  configsvr:
+    container_name: configsvr
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --configsvr --replSet configrs --port 27020 --bind_ip_all
+    volumes:
+      - configsvr_data:/data/configdb
+    ports:
+      - 27020:27020
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+      
+  shard1:
+    container_name: shard1
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard1rs --port 27018 --bind_ip_all
+    volumes:
+      - shard1_data:/data/db
+    ports:
+      - 27018:27018
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+      
+  shard2:
+    container_name: shard2
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard2rs --port 27019 --bind_ip_all
+    volumes:
+      - shard2_data:/data/db
+    ports:
+      - 27019:27019
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  mongos:
+    container_name: mongos
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongos --configdb configrs/configsvr:27020 --port 27017 --bind_ip_all
+    ports:
+      - 27017:27017
+    depends_on:
+      - configsvr
+      - shard1
+      - shard2
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  pymongo_api:
+    container_name: pymongo_api
+    build: 
+      context: api_app
+      dockerfile: Dockerfile
+    image: kazhem/pymongo_api:1.0.0
+    depends_on:
+      - mongos
+    ports:
+      - 8080:8080
+    environment:
+      MONGODB_URL: "mongodb://mongos"
+      MONGODB_DATABASE_NAME: "somedb"
+
+
+volumes:
+  configsvr_data:
+  shard1_data:
+  shard2_data:
+
+networks:
+  mongo_network:
+    driver: bridge

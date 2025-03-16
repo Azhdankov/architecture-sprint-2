@@ -1,10 +1,4 @@
-# ДЗ
-
-Папки с задачами проименоваты согласно тз
-Номера папок соответствуют номерам задач из дз
-Ниже дубликат readme.md из папки 4. sharding-repl-cache
-
-# Настройка MongoDB Sharding, replication, caching
+# Настройка MongoDB Sharding, replication
 
 ## Шаг 1: Запуск контейнеров
 ```bash
@@ -77,13 +71,3 @@ members: [
     }
   ]
 ```
-
-## Шаг 6: Проверка redis
-
-Выполняем запрос через postman
-```bash
-curl -X 'GET' \
-  'http://localhost:8080/helloDoc/users' \
-  -H 'accept: application/json'
-```
-Первый ответ занимает 1027 ms, второй - 7 ms

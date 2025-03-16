@@ -1,0 +1,166 @@
+services:
+  
+  configsvr:
+    container_name: configsvr
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --configsvr --replSet configrs --port 27016 --bind_ip_all
+    volumes:
+      - configsvr_data:/data/configdb
+    ports:
+      - 27016:27016
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+  
+  shard1_rs1:
+    container_name: shard1_rs1
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard1rs --port 27018 --bind_ip_all
+    volumes:
+      - shard1_rs1_data:/data/db
+    ports:
+      - 27018:27018
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+  shard1_rs2:
+    container_name: shard1_rs2
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard1rs --port 27019 --bind_ip_all
+    volumes:
+      - shard1_rs2_data:/data/db
+    ports:
+      - 27019:27019
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+  shard1_rs3:
+    container_name: shard1_rs3
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard1rs --port 27020 --bind_ip_all
+    volumes:
+      - shard1_rs3_data:/data/db
+    ports:
+      - 27020:27020
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+
+  shard2_rs1:
+    container_name: shard2_rs1
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard2rs --port 27021 --bind_ip_all
+    volumes:
+      - shard2_rs1_data:/data/db
+    ports:
+      - 27021:27021
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+  shard2_rs2:
+    container_name: shard2_rs2
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard2rs --port 27022 --bind_ip_all
+    volumes:
+      - shard2_rs2_data:/data/db
+    ports:
+      - 27022:27022
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+  shard2_rs3:
+    container_name: shard2_rs3
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongod --shardsvr --replSet shard2rs --port 27023 --bind_ip_all
+    volumes:
+      - shard2_rs3_data:/data/db
+    ports:
+      - 27023:27023
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+  mongos:
+    container_name: mongos
+    image: dh-mirror.gitverse.ru/mongo:latest
+    restart: always
+    command: mongos --configdb configrs/configsvr:27016 --port 27017 --bind_ip_all
+    ports:
+      - 27017:27017
+    depends_on:
+      - configsvr
+      - shard1_rs1
+      - shard1_rs2
+      - shard1_rs3
+      - shard2_rs1
+      - shard2_rs2
+      - shard2_rs3
+    networks:
+      - mongo_network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 5s
+      start_period: 10s
+
+  pymongo_api:
+    container_name: pymongo_api
+    build: 
+      context: api_app
+      dockerfile: Dockerfile
+    image: kazhem/pymongo_api:1.0.0
+    depends_on:
+      - mongos
+    ports:
+      - 8080:8080
+    environment:
+      MONGODB_URL: "mongodb://mongos"
+      MONGODB_DATABASE_NAME: "somedb"
+    networks:
+      - mongo_network
+
+volumes:
+  configsvr_data:
+  shard1_rs1_data:
+  shard1_rs2_data:
+  shard1_rs3_data:
+  shard2_rs1_data:
+  shard2_rs2_data:
+  shard2_rs3_data:
+
+networks:
+  mongo_network:
+    driver: bridge
